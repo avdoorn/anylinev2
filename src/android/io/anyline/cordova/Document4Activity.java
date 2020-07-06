@@ -7,6 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Base64InputStream;
+import android.util.Base64OutputStream;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -23,8 +26,13 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -207,6 +215,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 // change the file ending to png if you want a png
                 //JSONObject
                 jsonResult = new JSONObject();
+                String result = new String();
                 try {
                     // convert the transformed image into a gray scaled image internally
                     // transformedImage.getGrayCvMat(false);
@@ -216,22 +225,74 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     File imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this,
                                                                            UUID.randomUUID().toString(), ".jpg");
                     transformedImage.save(imageFile, quality);
-                    showToast(getString(
-                            getResources().getIdentifier("document_image_saved_to", "string", getPackageName())) + " " + imageFile.getAbsolutePath());
+                    //showToast(getString(getResources().getIdentifier("document_image_saved_to", "string", getPackageName())) + " " + imageFile.getAbsolutePath());
 
                     jsonResult.put("imagePath", imageFile.getAbsolutePath());
 
 
                     // Save the Full Frame Image
-                    if (fullFrame != null) {
-                        imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this,
-                                                                          UUID.randomUUID().toString(), ".jpg");
-                        fullFrame.save(imageFile, quality);
-                        jsonResult.put("fullImagePath", imageFile.getAbsolutePath());
+                    //if (fullFrame != null) {
+                    //    imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this,
+                    //                                                      UUID.randomUUID().toString(), ".jpg");
+                    //    fullFrame.save(imageFile, quality);
+                    //    jsonResult.put("fullImagePath", imageFile.getAbsolutePath());
+                    //}
+                    //// Put outline and conficence to result
+                    //jsonResult.put("outline", jsonForOutline(documentResult.getOutline()));
+                    //jsonResult.put("confidence", documentResult.getConfidence());
+
+                    FileInputStream fis = new FileInputStream(imageFile);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    Base64OutputStream base64out = new Base64OutputStream(baos, Base64.NO_WRAP);
+                    byte[]buffer = new byte[1024];
+                    int len = 0;
+                    while ((len = fis.read(buffer)) >= 0) {
+                        base64out.write(buffer, 0, len);
                     }
+                    base64out.flush();
+                    base64out.close();
+                    /*
+                     * Why should we close Base64OutputStream before processing the data:
+                     * http://stackoverflow.com/questions/24798745/androidfiletobase64usingstreamingsometimesmissed2bytes
+                     */
+
+                    byte[]data = baos.toByteArray();
+
+                    // Apply contrast
+                    byte contrast = (byte)10;
+                    int factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+                    byte byteFactor = (byte)factor;
+                    int inbetween;
+                    int dataCounter = 0;
+                    int dataLength = data.length;
+                    while (dataCounter < dataLength) {
+                        inbetween = factor * (data[dataCounter] - 128) + 128;
+                        data[dataCounter] = (byte)inbetween;
+                        inbetween = factor * (data[dataCounter + 1] - 128) + 128;
+                        data[dataCounter + 1] = (byte)inbetween;
+                        inbetween = factor * (data[dataCounter + 2] - 128) + 128;
+                        data[dataCounter + 2] = (byte)inbetween;
+                        dataCounter += 4;
+                    }
+
+                    result = new String(data, "UTF-8");
+
+                    baos.close();
+                    fis.close();
+                    /**
+                     * IMPORTANT: cache provided frames here, and release them at the end of this onResult. Because
+                     * keeping them in memory (e.g. setting the full frame to an ImageView)
+                     * will result in a OutOfMemoryError soon. This error is reported in {@link #onTakePictureError
+                     * (Throwable)}
+                     *
+                     * Use a DiskCache http://developer.android.com/training/displayingbitmaps/cachebitmap.html#diskcache
+                     * for example
+                     *
+                     */
+
                     // Put outline and conficence to result
-                    jsonResult.put("outline", jsonForOutline(documentResult.getOutline()));
-                    jsonResult.put("confidence", documentResult.getConfidence());
+                    jsonResult.put("imageData", result);
+                    jsonResult.put("takenManual", "false");
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException jsonException) {
