@@ -422,7 +422,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     // get the transformed image as bitmap
                     // Bitmap bmp = transformedImage.getBitmap();
                     // save the image with quality 100 (only used for jpeg, ignored for png)
-                    File imageFile = TempFileUtil.createTempFileCheckCache(DocumentActivity.this,
+                    File imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this,
                             UUID.randomUUID().toString(), ".jpg");
                     anylineImage.save(imageFile, quality);
                     //showToast(getString(getResources().getIdentifier("document_image_saved_to", "string", getPackageName())) + " " + imageFile.getAbsolutePath());
