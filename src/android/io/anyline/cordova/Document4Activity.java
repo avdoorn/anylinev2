@@ -176,8 +176,6 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 btnCapture.setClickable(false);
 
                 AnylineImage transformedImage = (AnylineImage) documentResult.getResult();
-                AnylineImage fullFrame = documentResult.getFullImage();
-
 
                 // resize display view based on larger side of document, and display document
                 int widthDP, heightDP;
@@ -229,17 +227,6 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
 
                     jsonResult.put("imagePath", imageFile.getAbsolutePath());
 
-
-                    // Save the Full Frame Image
-                    //if (fullFrame != null) {
-                    //    imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this,
-                    //                                                      UUID.randomUUID().toString(), ".jpg");
-                    //    fullFrame.save(imageFile, quality);
-                    //    jsonResult.put("fullImagePath", imageFile.getAbsolutePath());
-                    //}
-                    //// Put outline and conficence to result
-                    //jsonResult.put("outline", jsonForOutline(documentResult.getOutline()));
-                    //jsonResult.put("confidence", documentResult.getConfidence());
 
                     FileInputStream fis = new FileInputStream(imageFile);
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -293,35 +280,22 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     // Put outline and conficence to result
                     jsonResult.put("imageData", result);
                     jsonResult.put("takenManual", "false");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException jsonException) {
-                    //should not be possible
-                    Log.e(TAG, "Error while putting image path to json.", jsonException);
+                } catch(Exception e) {
+                    String exceptionMessage = e.getMessage();
+                    try {
+                        jsonResult.put("imageData", "Error: " + exceptionMessage);
+
+                    } catch (Exception je) {
+                        Log.e(TAG, "Error while putting image data to json.", je);
+                    }
                 }
 
                 // release the images
                 transformedImage.release();
-                fullFrame.release();
 
-                Boolean cancelOnResult = true;
-
-                JSONObject jsonObject;
-                try {
-                    jsonObject = new JSONObject(configJson);
-                    cancelOnResult = jsonObject.getBoolean("cancelOnResult");
-                } catch (Exception e) {
-                    Log.d(TAG, e.getLocalizedMessage());
-                }
-
-                if (cancelOnResult) {
-                    ResultReporter.onResult(jsonResult, true);
-                    setResult(AnylinePlugin.RESULT_OK);
-                    finish();
-                } else {
-                    btnCapture.setClickable(true);
-                    ResultReporter.onResult(jsonResult, false);
-                }
+                ResultReporter.onResult(jsonResult, true);
+                setResult(AnylinePlugin.RESULT_OK);
+                finish();
             }
 
 
@@ -439,41 +413,93 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 }
 
                 // save fullFrame
+                JSONObject jsonResult = new JSONObject();
+                String result = new String();
                 try {
-                    File imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this, UUID.randomUUID().toString(), ".jpg");
+
+                    // convert the transformed image into a gray scaled image internally
+                    // transformedImage.getGrayCvMat(false);
+                    // get the transformed image as bitmap
+                    // Bitmap bmp = transformedImage.getBitmap();
+                    // save the image with quality 100 (only used for jpeg, ignored for png)
+                    File imageFile = TempFileUtil.createTempFileCheckCache(DocumentActivity.this,
+                            UUID.randomUUID().toString(), ".jpg");
                     anylineImage.save(imageFile, quality);
+                    //showToast(getString(getResources().getIdentifier("document_image_saved_to", "string", getPackageName())) + " " + imageFile.getAbsolutePath());
+
+                    //showToast("Saved image");
                     jsonResult.put("imagePath", imageFile.getAbsolutePath());
 
-                    //                    if (showSuccessToast) {
-                    //                        // Only show toast if user has specified it should be shown
-                    //                        showToast(getString(getResources().getIdentifier("document_image_saved_to", "string", getPackageName())) + " " + imageFile.getAbsolutePath());
-                    //                    }
+                    FileInputStream fis = new FileInputStream(imageFile);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    Base64OutputStream base64out = new Base64OutputStream(baos, Base64.NO_WRAP);
+                    byte[]buffer = new byte[1024];
+                    int len = 0;
+                    while ((len = fis.read(buffer)) >= 0) {
+                        base64out.write(buffer, 0, len);
+                    }
+                    base64out.flush();
+                    base64out.close();
+                    /*
+                     * Why should we close Base64OutputStream before processing the data:
+                     * http://stackoverflow.com/questions/24798745/androidfiletobase64usingstreamingsometimesmissed2bytes
+                     */
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    byte[]data = baos.toByteArray();
+
+                    // Apply contrast
+                    byte contrast = (byte)10;
+                    int factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+                    byte byteFactor = (byte)factor;
+                    int inbetween;
+                    int dataCounter = 0;
+                    int dataLength = data.length;
+                    while (dataCounter < dataLength) {
+                        inbetween = factor * (data[dataCounter] - 128) + 128;
+                        data[dataCounter] = (byte)inbetween;
+                        inbetween = factor * (data[dataCounter + 1] - 128) + 128;
+                        data[dataCounter + 1] = (byte)inbetween;
+                        inbetween = factor * (data[dataCounter + 2] - 128) + 128;
+                        data[dataCounter + 2] = (byte)inbetween;
+                        dataCounter += 4;
+                    }
+
+                    result = new String(data, "UTF-8");
+
+                    baos.close();
+                    fis.close();
+                    /**
+                     * IMPORTANT: cache provided frames here, and release them at the end of this onResult. Because
+                     * keeping them in memory (e.g. setting the full frame to an ImageView)
+                     * will result in a OutOfMemoryError soon. This error is reported in {@link #onTakePictureError
+                     * (Throwable)}
+                     *
+                     * Use a DiskCache http://developer.android.com/training/displayingbitmaps/cachebitmap.html#diskcache
+                     * for example
+                     *
+                     */
+
+                    // Put outline and conficence to result
+                    jsonResult.put("imageData", result);
+                    jsonResult.put("takenManual", "true");
+                } 	catch(Exception e) {
+                    String exceptionMessage = e.getMessage();
+
+                    showToast(exceptionMessage);
+                    try {
+                        jsonResult.put("imageData", "Error: "+exceptionMessage);
+
+                    } catch (Exception je) {
+                        Log.e(TAG, "Error while putting image data to json.", je);
+                    }
                 }
 
+                // release the images
                 anylineImage.release();
 
-                Boolean cancelOnResult = true;
-                JSONObject jsonObject;
-                try {
-                    jsonObject = new JSONObject(configJson);
-                    cancelOnResult = jsonObject.getBoolean("cancelOnResult");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                if (cancelOnResult) {
-                    ResultReporter.onResult(jsonResult, true);
-                    setResult(AnylinePlugin.RESULT_OK);
-                    finish();
-                } else {
-                    btnCapture.setClickable(true);
-                    ResultReporter.onResult(jsonResult, false);
-                }
+                ResultReporter.onResult(jsonResult, true);
+                setResult(AnylinePlugin.RESULT_OK);
+                finish();
             }
 
             @Override
