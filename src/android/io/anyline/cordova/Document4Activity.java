@@ -181,6 +181,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 int widthDP, heightDP;
                 Bitmap bmpTransformedImage = transformedImage.getBitmap();
 
+                Log.d(TAG, "onResult: Resize display view based on larger side of document, and display document");
                 if (bmpTransformedImage.getHeight() > bmpTransformedImage.getWidth()) {
                     widthDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics());
                     heightDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 160, getResources().getDisplayMetrics());
@@ -311,33 +312,33 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 // Note: this is called every time an error occurs in a run, so that might be quite often
                 // An error message should only be presented to the user after some time
 
-                showErrorMessageFor(documentError);
+                //showErrorMessageFor(documentError);
             }
 
             @Override
             public void onPictureProcessingFailure(DocumentScanViewPlugin.DocumentError documentError) {
 
-                showErrorMessageFor(documentError, true);
-                if (progressDialog != null && progressDialog.isShowing()) {
-                    progressDialog.dismiss();
-                }
-
-                // if there is a problem, here is how images could be saved in the error case
-                // this will be a full, not cropped, not transformed image
-                AnylineImage image = ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).getCurrentFullImage();
-
-                if (image != null) {
-                    File outDir = new File(getCacheDir(), "error");
-                    outDir.mkdir();
-                    File outFile = new File(outDir, "" + System.currentTimeMillis() + documentError.name() + ".jpg");
-                    try {
-                        image.save(outFile, 100);
-                        Log.d(TAG, "error image saved to " + outFile.getAbsolutePath());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    image.release();
-                }
+//                showErrorMessageFor(documentError, true);
+//                if (progressDialog != null && progressDialog.isShowing()) {
+//                    progressDialog.dismiss();
+//                }
+//
+//                // if there is a problem, here is how images could be saved in the error case
+//                // this will be a full, not cropped, not transformed image
+//                AnylineImage image = ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).getCurrentFullImage();
+//
+//                if (image != null) {
+//                    File outDir = new File(getCacheDir(), "error");
+//                    outDir.mkdir();
+//                    File outFile = new File(outDir, "" + System.currentTimeMillis() + documentError.name() + ".jpg");
+//                    try {
+//                        image.save(outFile, 100);
+//                        Log.d(TAG, "error image saved to " + outFile.getAbsolutePath());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    image.release();
+//                }
             }
 
             @Override
@@ -351,11 +352,11 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
             @Override
             public void onTakePictureSuccess() {
                 // this is called after the image has been captured from the camera and is about to be processed
-                progressDialog = ProgressDialog.show(Document4Activity.this, getString(
-                        getResources().getIdentifier("document_processing_picture_header", "string", getPackageName())),
-                                                     getString(
-                                                             getResources().getIdentifier("document_processing_picture", "string", getPackageName())),
-                                                     true);
+//                progressDialog = ProgressDialog.show(Document4Activity.this, getString(
+//                        getResources().getIdentifier("document_processing_picture_header", "string", getPackageName())),
+//                                                     getString(
+//                                                             getResources().getIdentifier("document_processing_picture", "string", getPackageName())),
+//                                                     true);
 
                 if (errorMessageAnimator != null && errorMessageAnimator.isRunning()) {
 
@@ -374,6 +375,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
             public void onTakePictureError(Throwable throwable) {
                 // This is called if the image could not be captured from the camera (most probably because of an
                 // OutOfMemoryError)
+                Log.e(TAG, "onTakePictureError: This is called if the image could not be captured from the camera (most probably because of an OutOfMemoryError");
                 throw new RuntimeException(throwable);
             }
 
@@ -506,6 +508,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
             public void onPictureTransformError(DocumentScanViewPlugin.DocumentError documentError) {
                 // this is called on any error while transforming the document image from the 4 corners
                 // Note: not implemented in this example
+                showToast("ERROR WITH TRANSFORMING");
             }
 
         });
