@@ -159,7 +159,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     btnCapture.setVisibility(View.GONE);
                 }
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
             }
         }
@@ -178,10 +178,10 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 AnylineImage transformedImage = (AnylineImage) documentResult.getResult();
 
                 // resize display view based on larger side of document, and display document
+                Log.d(TAG, "onResult: Resize display view based on larger side of document, and display document");
                 int widthDP, heightDP;
                 Bitmap bmpTransformedImage = transformedImage.getBitmap();
 
-                Log.d(TAG, "onResult: Resize display view based on larger side of document, and display document");
                 if (bmpTransformedImage.getHeight() > bmpTransformedImage.getWidth()) {
                     widthDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics());
                     heightDP = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 160, getResources().getDisplayMetrics());
@@ -283,6 +283,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     jsonResult.put("takenManual", "false");
                 } catch(Exception e) {
                     String exceptionMessage = e.getMessage();
+                    showToast(exceptionMessage);
                     try {
                         jsonResult.put("imageData", "Error: " + exceptionMessage);
 
@@ -393,9 +394,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     //manualResult.put("fullImagePath", imageFile.getAbsolutePath());
                     jsonResult.put("fullImagePath", imageFile.getAbsolutePath());
                     jsonResult.put("outline", jsonForOutline(list));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
+                }  catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -486,7 +485,6 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     jsonResult.put("takenManual", "true");
                 } 	catch(Exception e) {
                     String exceptionMessage = e.getMessage();
-
                     showToast(exceptionMessage);
                     try {
                         jsonResult.put("imageData", "Error: "+exceptionMessage);
@@ -508,7 +506,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
             public void onPictureTransformError(DocumentScanViewPlugin.DocumentError documentError) {
                 // this is called on any error while transforming the document image from the 4 corners
                 // Note: not implemented in this example
-                showToast("ERROR WITH TRANSFORMING");
+                Log.d(TAG, "Error with transforming.");
             }
 
         });
@@ -562,6 +560,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
     }
 
     private void showErrorMessageUiAnimated(String message) {
+        Log.d(TAG, "showErrorMessageUiAnimated start");
         if (lastErrorRecieved == 0) {
             // the cleanup takes care of removing the message after some time if the error did not show up again
             handler.post(errorMessageCleanup);
@@ -580,9 +579,11 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
         errorMessageAnimator.setDuration(ERROR_MESSAGE_DELAY);
         errorMessageAnimator.setInterpolator(new DecelerateInterpolator());
         errorMessageAnimator.start();
+        Log.d(TAG, "showErrorMessageUiAnimated end");
     }
 
     private void showHighlightErrorMessageUiAnimated(String message) {
+        Log.d(TAG, "showHighlightErrorMessageUiAnimated start");
         lastErrorRecieved = System.currentTimeMillis();
         errorMessageLayout.setVisibility(View.VISIBLE);
         errorMessage.setBackgroundColor(ContextCompat.getColor(this, getResources().getIdentifier("anyline_red", "color", getPackageName())));
@@ -599,6 +600,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
         errorMessageAnimator.setRepeatMode(ValueAnimator.REVERSE);
         errorMessageAnimator.setRepeatCount(1);
         errorMessageAnimator.start();
+        Log.d(TAG, "showHighlightErrorMessageUiAnimated end");
     }
 
     private void showToast(String text) {
@@ -643,6 +645,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
         //This is called if the camera could not be opened.
         // (e.g. If there is no camera or the permission is denied)
         // This is useful to present an alternative way to enter the required data if no camera exists.
+        Log.e(TAG, "Error opening camera.", e);
         throw new RuntimeException(e);
     }
 
