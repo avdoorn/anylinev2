@@ -507,6 +507,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 // this is called on any error while transforming the document image from the 4 corners
                 // Note: not implemented in this example
                 Log.d(TAG, "Error with transforming.");
+                showToast("Error with transforming.");
             }
 
         });
