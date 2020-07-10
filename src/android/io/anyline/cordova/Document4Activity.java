@@ -138,13 +138,8 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                     handler.postDelayed(new Runnable(){
                         @Override
                         public void run(){
-                            JSONObject manCapBtnConf = documentConfig.getJSONObject("manualCaptureButton");
 
-                            if (manCapBtnConf.has("buttonColor")) {
-                                //btnCapture.setBackgroundColor(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
-                                btnCapture.setColorFilter(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
-
-                            }
+                            btnCapture.setColorFilter(Color.parseColor("#C0C0C0"));
 
                             // init Manual Capture Button
                             btnCapture.setVisibility(View.VISIBLE);
@@ -152,8 +147,8 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
 
                                 @Override
                                 public void onClick(View v) {
-                                    btnCapture.setClickable(false);
-                                    documentScanView.stop();
+//                                    btnCapture.setClickable(false);
+//                                    documentScanView.stop();
                                     ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).triggerPictureCornerDetection();
                                 }
                             });
