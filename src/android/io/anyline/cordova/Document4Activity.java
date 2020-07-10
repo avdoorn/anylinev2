@@ -135,26 +135,30 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
 
                 // set manual capture Button Config
                 if (documentConfig.has("manualCaptureButton")) {
-                    JSONObject manCapBtnConf = documentConfig.getJSONObject("manualCaptureButton");
-
-                    if (manCapBtnConf.has("buttonColor")) {
-                        //btnCapture.setBackgroundColor(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
-                        btnCapture.setColorFilter(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
-
-                    }
-
-                    // init Manual Capture Button
-                    btnCapture.setVisibility(View.VISIBLE);
-                    btnCapture.setOnClickListener(new View.OnClickListener() {
-
+                    handler.postDelayed(new Runnable(){
                         @Override
-                        public void onClick(View v) {
-                            btnCapture.setClickable(false);
-                            documentScanView.stop();
-                            ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).triggerPictureCornerDetection();
-                        }
-                    });
+                        public void run(){
+                            JSONObject manCapBtnConf = documentConfig.getJSONObject("manualCaptureButton");
 
+                            if (manCapBtnConf.has("buttonColor")) {
+                                //btnCapture.setBackgroundColor(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
+                                btnCapture.setColorFilter(Color.parseColor("#" + manCapBtnConf.getString("buttonColor")));
+
+                            }
+
+                            // init Manual Capture Button
+                            btnCapture.setVisibility(View.VISIBLE);
+                            btnCapture.setOnClickListener(new View.OnClickListener() {
+
+                                @Override
+                                public void onClick(View v) {
+                                    btnCapture.setClickable(false);
+                                    documentScanView.stop();
+                                    ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).triggerPictureCornerDetection();
+                                }
+                            });
+                        }
+                    }, 5000);
                 } else {
                     btnCapture.setVisibility(View.GONE);
                 }
@@ -507,7 +511,6 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                 // this is called on any error while transforming the document image from the 4 corners
                 // Note: not implemented in this example
                 Log.d(TAG, "Error with transforming.");
-                showToast("Error with transforming.");
             }
 
         });
