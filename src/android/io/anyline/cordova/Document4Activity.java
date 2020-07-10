@@ -154,10 +154,7 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
                             });
                         }
                     }, 5000);
-                } else {
-                    btnCapture.setVisibility(View.GONE);
                 }
-
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
             }
