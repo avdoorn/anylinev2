@@ -147,8 +147,9 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
 
                                 @Override
                                 public void onClick(View v) {
-//                                    btnCapture.setClickable(false);
-//                                    documentScanView.stop();
+                                    btnCapture.setClickable(false);
+                                    btnCapture.setVisibility(View.GONE);
+                                    documentScanView.stop();
                                     ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).triggerPictureCornerDetection();
                                 }
                             });
