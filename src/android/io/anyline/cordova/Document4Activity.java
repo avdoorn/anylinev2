@@ -383,9 +383,9 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
 
                 // save fullFrame
                 //JSONObject
+                Log.d(TAG, "onPictureCornersDetected: This is called after manual corner detection was requested");
                 jsonResult = new JSONObject();
 
-                Log.d(TAG, "onPictureCornersDetected: This is called after manual corner detection was requested");
                 try {
                     Log.d(TAG, "onPictureCornersDetected: TempFileUtil.createTempFileCheckCache");
                     File imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this, UUID.randomUUID().toString(), ".jpg");
