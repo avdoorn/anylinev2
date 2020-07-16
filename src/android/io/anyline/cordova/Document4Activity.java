@@ -380,28 +380,20 @@ public class Document4Activity extends AnylineBaseActivity implements CameraOpen
             @Override
             public void onPictureCornersDetected(AnylineImage anylineImage, List list) {
                 // this is called after manual corner detection was requested
-
                 // save fullFrame
                 //JSONObject
-                Log.d(TAG, "onPictureCornersDetected: This is called after manual corner detection was requested");
                 jsonResult = new JSONObject();
 
                 try {
-                    Log.d(TAG, "onPictureCornersDetected: TempFileUtil.createTempFileCheckCache");
                     File imageFile = TempFileUtil.createTempFileCheckCache(Document4Activity.this, UUID.randomUUID().toString(), ".jpg");
-                    Log.d(TAG, "onPictureCornersDetected: anylineImage.save");
                     anylineImage.save(imageFile, quality);
-                    //manualResult.put("fullImagePath", imageFile.getAbsolutePath());
-                    Log.d(TAG, "onPictureCornersDetected: imageFile.getAbsolutePath()");
                     jsonResult.put("fullImagePath", imageFile.getAbsolutePath());
                     jsonResult.put("outline", jsonForOutline(list));
                 }  catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                Log.d(TAG, "onPictureCornersDetected: documentScanView.getScanViewPlugin()");
                 ((DocumentScanViewPlugin) documentScanView.getScanViewPlugin()).transformPicture(anylineImage, list);
-                Log.d(TAG, "onPictureCornersDetected: anylineImage.release");
                 anylineImage.release();
             }
 
