@@ -36,8 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-//import androidx.core.content.ContextCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import at.nineyards.anyline.camera.CameraController;
 import at.nineyards.anyline.camera.CameraOpenListener;
 import at.nineyards.anyline.core.LicenseException;
